@@ -7,7 +7,7 @@
 #define ACC_SCALE 9.80665 / 512
 #define ANG_SCALE 4 / 16.4
 
-int main(int, char**) 
+int main(int, char **)
 {
     std::string port = "/dev/ttyACM0";
     uint32_t baudrate = 115200;
@@ -15,17 +15,14 @@ int main(int, char**)
     // Instanciate interface
     mspfci::Interface inter(port, baudrate);
 
-    // Dfine IMU data
-    mspfci::Bytes imu_data;
+    // Define raw IMU data
+    mspfci::Bytes raw_imu;
 
-    // Counter
-    int cnt = 0;
-
-    // Start timer
-    auto start = std::chrono::high_resolution_clock::now();
+    // Define IMU data
+    mspfci::Imu imu;
 
     // Wait for a message to be read
-    while (cnt < 1000)
+    for (size_t i = 0; i < 1000; ++i)
     {
         // Send request of IMU data
         if (!inter.send(mspfci::MSPCode::MSP_RAW_IMU, mspfci::Bytes()))
@@ -33,43 +30,23 @@ int main(int, char**)
             std::cout << "Failed to send command" << std::endl;
         }
         // Read data
-        if (!inter.receive(imu_data))
+        if (!inter.receive(raw_imu))
         {
-            imu_data.clear();
+            raw_imu.clear();
             std::cout << "Failed to receive data" << std::endl;
         }
         else
-        {   
-
-            std::array<float, 3> acc;
-            std::array<float, 3> ang;
-
-            if (!mspfci::decode<int16_t>(imu_data, acc.at(0), 0, ACC_SCALE) &
-                !mspfci::decode<int16_t>(imu_data, acc.at(1), 2, ACC_SCALE) &
-                !mspfci::decode<int16_t>(imu_data, acc.at(2), 4, ACC_SCALE))
+        {
+            if (!imu.setFromRawImu(raw_imu))
             {
-                std::cout << "Failed to decode accelerometer data" << std::endl;
+                std::cout << "Failed to decode imu data" << std::endl;
             }
-
-            if (!mspfci::decode<int16_t>(imu_data, ang.at(0), 6, ANG_SCALE) &
-                !mspfci::decode<int16_t>(imu_data, ang.at(1), 8, ANG_SCALE) &
-                !mspfci::decode<int16_t>(imu_data, ang.at(2), 10, ANG_SCALE))
-            {
-                std::cout << "Failed to decode gyroscope data" << std::endl;
-            }
-        
-            std::cout << acc << ang;
-
-            std::cout << std::endl;
-            imu_data.clear();
-            ++cnt;
+            std::cout << "Acceleration: " << imu.acc_ << " m/s^2\n"
+                      << "Angular velocity: " << imu.ang_ << " rad/s\n"
+                      << std::endl;
+            raw_imu.clear();
         }
     }
-
-    // End timer
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<float> seconds = end - start;
-    std::cout << seconds.count() << '\n';
 
     return 0;
 }

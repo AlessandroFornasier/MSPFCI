@@ -7,6 +7,7 @@
 
 #include "defs.hpp"
 #include "utils.hpp"
+#include "msgs.hpp"
 #include "logger.hpp"
 
 namespace mspfci
@@ -25,7 +26,7 @@ namespace mspfci
          * @param ver (const reference to MSPVer)
          * @param level (const reference to LoggerLevel)
          */
-        Interface(const std::string& port, const uint32_t& baudrate = 115200, const MSPVer& ver = MSPVer::MSPv1, const LoggerLevel& level = LoggerLevel::FULL);
+        Interface(const std::string & port, const uint32_t& baudrate = 115200, const MSPVer& ver = MSPVer::MSPv1, const LoggerLevel& level = LoggerLevel::FULL);
 
         /**
          * @brief Getter. Get port of the serial connection
