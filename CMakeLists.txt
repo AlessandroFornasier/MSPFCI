@@ -69,5 +69,5 @@ add_library(mspfci SHARED ${lib_sources})
 target_link_libraries(mspfci ${thirdparty_libraries})
 
 ## Declare a C++ executable
-add_executable(read_imu examples/read_imu.cpp)
-target_link_libraries(read_imu ${thirdparty_libraries} mspfci)
+add_executable(read_sensors examples/read_sensors.cpp)
+target_link_libraries(read_sensors ${thirdparty_libraries} mspfci)

@@ -3,37 +3,38 @@
 namespace mspfci
 {
 Interface::Interface(const std::string& port, const uint32_t& baudrate, const MSPVer& ver, const LoggerLevel& level)
-  : serial_(port, baudrate, serial::Timeout::simpleTimeout(0)), logger_(level)
+  : serial_(std::make_unique<serial::Serial>(port, baudrate, serial::Timeout::simpleTimeout(0)))
+  , logger_(std::make_unique<Logger>(level))
 {
-  logger_.info("Interface: Connection established on port " + port);
-  logger_.info("Interface: Baudrate set to " + std::to_string(baudrate));
+  logger_->info("Interface: Connection established on port " + port);
+  logger_->info("Interface: Baudrate set to " + std::to_string(baudrate));
   setMspVersion(ver);
 }
 
 bool Interface::send(const MSPCode& code, const Bytes& data)
 {
   // Check serial connection
-  if (!serial_.isOpen())
+  if (!serial_->isOpen())
   {
-    logger_.err("Interface::send: Serial port is close");
+    logger_->err("Interface::send: Serial port is close");
     return false;
   }
 
   // check data size to net exceed the max payload size
   if (data.size() >= max_payload_bytes_)
   {
-    logger_.err("Interface::send: Data size bigger than maximum payload");
+    logger_->err("Interface::send: Data size bigger than maximum payload");
     return false;
   }
 
   // Send command
   Bytes msg = pack(code, data);
-  size_t bytes_written = serial_.write(msg);
+  size_t bytes_written = serial_->write(msg);
 
   // Check that all the bytes were written
   if (bytes_written != msg.size())
   {
-    logger_.err("Interface::send: Write failed");
+    logger_->err("Interface::send: Write failed");
     return false;
   }
 
@@ -135,9 +136,9 @@ uint8_t Interface::crc(const MSPCode& code, const Bytes& data)
 bool Interface::receive(Bytes& data)
 {
   // Check serial connection
-  if (!serial_.isOpen())
+  if (!serial_->isOpen())
   {
-    logger_.err("Interface::receive: Serial port is close");
+    logger_->err("Interface::receive: Serial port is close");
     return false;
   }
 
@@ -149,7 +150,7 @@ bool Interface::receive(Bytes& data)
   while (true)
   {
     // Read one byte
-    serial_.read(read_buffer, 1);
+    serial_->read(read_buffer, 1);
 
     // Check if magic character has been found otherwise clear the buffer
     if (!read_buffer.empty() && read_buffer.back() == '$')
@@ -168,7 +169,7 @@ bool Interface::receive(Bytes& data)
 bool Interface::unpack(Bytes& read_buffer, Bytes& data)
 {
   // Read one byte
-  serial_.read(read_buffer, 1);
+  serial_->read(read_buffer, 1);
 
   // define type, data_size and code
   uint8_t type;
@@ -180,15 +181,15 @@ bool Interface::unpack(Bytes& read_buffer, Bytes& data)
   {
     if (msp_version_ != MSPVer::MSPv1)
     {
-      logger_.warn("Interface::receive: Received message with MSPv2 protocol. "
-                   "Dropping this message and switching from MSPv1 to MSPv2");
+      logger_->warn("Interface::receive: Received message with MSPv2 protocol. "
+                    "Dropping this message and switching from MSPv1 to MSPv2");
       setMspVersion(MSPVer::MSPv2);
       read_buffer.clear();
       return false;
     }
 
     // Read three bytes
-    if (serial_.read(read_buffer, 3) != 3)
+    if (serial_->read(read_buffer, 3) != 3)
     {
       return false;
     }
@@ -203,15 +204,15 @@ bool Interface::unpack(Bytes& read_buffer, Bytes& data)
   {
     if (msp_version_ != MSPVer::MSPv2)
     {
-      logger_.warn("Interface::receive: Received message with MSPv2 protocol. "
-                   "Dropping this message and switching from MSPv1 to MSPv2");
+      logger_->warn("Interface::receive: Received message with MSPv2 protocol. "
+                    "Dropping this message and switching from MSPv1 to MSPv2");
       setMspVersion(MSPVer::MSPv1);
       read_buffer.clear();
       return false;
     }
 
     // Read six bytes
-    if (serial_.read(read_buffer, 6) != 6)
+    if (serial_->read(read_buffer, 6) != 6)
     {
       return false;
     }
@@ -232,12 +233,12 @@ bool Interface::unpack(Bytes& read_buffer, Bytes& data)
   // Check type
   if (type == '!')
   {
-    logger_.err("Interface::receive: Received message with error type (!)");
+    logger_->err("Interface::receive: Received message with error type (!)");
     return false;
   }
 
   // Read data_size bytes and fill data buffer
-  if (serial_.read(data, data_size) != data_size)
+  if (serial_->read(data, data_size) != data_size)
   {
     return false;
   }
@@ -256,12 +257,12 @@ bool Interface::unpack(Bytes& read_buffer, Bytes& data)
   }
 
   // Read last byte (crc)
-  serial_.read(read_buffer, 1);
+  serial_->read(read_buffer, 1);
 
   // Check CRC and return
   if (read_buffer.back() != crc(code, checksummable))
   {
-    logger_.err("Interface::receive: Checksum failed");
+    logger_->err("Interface::receive: Checksum failed");
     return false;
   }
 

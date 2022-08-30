@@ -57,10 +57,9 @@ template <typename integral_type, typename T,
 
   return true;
 }
-}  // namespace mspfci
 
 /**
- * @brief Function to print a vector
+ * @brief Function to stream a vector
  */
 template <typename T>
 std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
@@ -81,7 +80,7 @@ std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
 }
 
 /**
- * @brief Function to print a fixed size array
+ * @brief Function to stream a fixed size array
  */
 template <typename T, size_t N>
 std::ostream& operator<<(std::ostream& stream, const std::array<T, N>& v)
@@ -100,5 +99,6 @@ std::ostream& operator<<(std::ostream& stream, const std::array<T, N>& v)
   }
   return stream;
 }
+}  // namespace mspfci
 
 #endif  // UTILS_H
