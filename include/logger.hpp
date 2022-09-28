@@ -2,6 +2,8 @@
 #define LOGGER_H
 
 #include <iostream>
+#include <memory>
+#include <mutex>
 
 namespace mspfci
 {
@@ -16,31 +18,23 @@ enum LoggerLevel
 
 class Logger
 {
-public:
+ public:
   /**
    * @brief Logger constructor
    */
-  Logger(const LoggerLevel& level) : level_(level)
-  {
-  }
+  Logger(const LoggerLevel& level) : level_(level) {}
 
   /**
    * @brief Getter. Get the MSP version in use
    * @return msp version (const reference to MSPVer)
    */
-  inline const LoggerLevel& getlevel() const
-  {
-    return level_;
-  }
+  inline const LoggerLevel& getlevel() const { return level_; }
 
   /**
    * @brief Setter. Set the logger level version
    * @param level (const reference to LoggerLevel)
    */
-  inline void setLevel(const LoggerLevel& level)
-  {
-    level_ = level;
-  }
+  inline void setLevel(const LoggerLevel& level) { level_ = level; }
 
   /**
    * @brief Format a info message and log it
@@ -78,18 +72,22 @@ public:
     }
   }
 
-private:
+ private:
   /**
    * @brief Log a message if logger is active
    * @param msg (std::string)
    */
   inline void log(const std::string& msg)
   {
-    std::cout << msg << std::endl;
+    std::scoped_lock lock(logger_mtx_);
+    std::cout << msg << '\n' << std::endl;
   }
 
   /// Logger level
   LoggerLevel level_;
+
+  /// Logger mutex
+  std::mutex logger_mtx_;
 };
 }  // namespace mspfci
 

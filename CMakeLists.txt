@@ -30,7 +30,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "Set compiler ${CMAKE_CXX_COMPILER}.")
 
 # Optimization flags
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=address")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=thread")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=address")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=undefined")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -Weffc++")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Define build type
@@ -62,6 +66,7 @@ list(
 list(
   APPEND lib_sources
   source/interface.cpp
+  source/msp.cpp
 )
 
 ## Declare a C++ library
@@ -71,3 +76,5 @@ target_link_libraries(mspfci ${thirdparty_libraries})
 ## Declare a C++ executable
 add_executable(read_sensors examples/read_sensors.cpp)
 target_link_libraries(read_sensors ${thirdparty_libraries} mspfci)
+add_executable(read_sensors_async examples/read_sensors_async.cpp)
+target_link_libraries(read_sensors_async ${thirdparty_libraries} mspfci)

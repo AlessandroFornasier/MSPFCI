@@ -42,8 +42,9 @@ template <typename T, typename std::enable_if<std::is_integral<T>::value, T>::ty
  * @param scale scale to be applied to decoded data
  * @return True if decoding is succeeded, Flase otherwise
  */
-template <typename integral_type, typename T,
-          typename std::enable_if<std::is_floating_point<T>::value, T>::type* = nullptr>
+template <typename integral_type,
+          typename T,
+          typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 [[nodiscard]] bool decode(const Bytes& data, T& x, size_t offset = 0, float scale = 1.0) {
   // Decode data into integral_type
   integral_type tmp = 0;
@@ -59,10 +60,17 @@ template <typename integral_type, typename T,
 }
 
 /**
- * @brief Function to stream a vector
+ * @brief Stream a std::vector or a std::array
+ * @tparam T type of data to be streamed (std::vector or std::array)
+ * @param stream (reference to std::ostream)
+ * @param x data to be streamed (const reference to T)
  */
-template <typename T>
-std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
+template <
+    typename T,
+    typename std::enable_if<std::is_same<std::vector<typename T::value_type>, T>::value ||
+                                std::is_same<std::array<typename T::value_type, std::tuple_size<T>::value>, T>::value,
+                            T>::type* = nullptr>
+std::ostream& operator<<(std::ostream& stream, const T& v)
 {
   // Check vector is not empty
   if (!v.empty())
@@ -71,7 +79,7 @@ std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
     stream << "[";
 
     // Copy element of vector into output stream
-    std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(stream, ", "));
+    std::copy(v.begin(), v.end() - 1, std::ostream_iterator<typename T::value_type>(stream, ", "));
 
     // Last element and end bracket
     stream << v.back() << "]";
@@ -80,25 +88,17 @@ std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
 }
 
 /**
- * @brief Function to stream a fixed size array
+ * @brief Stream an enum
+ * @tparam T type of data to be streamed (enum)
+ * @param stream (reference to std::ostream)
+ * @param x data to be streamed (const reference to T)
  */
-template <typename T, size_t N>
-std::ostream& operator<<(std::ostream& stream, const std::array<T, N>& v)
+template <typename T, typename std::enable_if<std::is_enum<T>::value, T>::type* = nullptr>
+std::ostream& operator<<(std::ostream& stream, const T& e)
 {
-  // Check vector is not empty
-  if (!v.empty())
-  {
-    // Beginning bracket
-    stream << "[";
-
-    // Copy element of vector into output stream
-    std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(stream, ", "));
-
-    // Last element and end bracket
-    stream << v.back() << "]";
-  }
-  return stream;
+  return stream << static_cast<typename std::underlying_type<T>::type>(e);
 }
+
 }  // namespace mspfci
 
 #endif  // UTILS_H

@@ -31,16 +31,6 @@ enum class MSPCode : uint16_t
   MSP_RAW_IMU = 102,
   MSP_ALTITUDE = 109,
 };
-
-/**
- * @brief Stream an enum
- * (https://stackoverflow.com/questions/11421432/how-can-i-output-the-value-of-an-enum-class-in-c11)
- */
-template <typename T>
-std::ostream& operator<<(typename std::enable_if<std::is_enum<T>::value, std::ostream>::type& stream, const T& e)
-{
-  return stream << static_cast<typename std::underlying_type<T>::type>(e);
-}
 }  // namespace mspfci
 
 #endif  // DEFS_H

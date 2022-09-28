@@ -1,15 +1,15 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#include <serial/serial.h>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 
-#include "defs.hpp"
 #include "logger.hpp"
-#include "msgs.hpp"
-#include "utils.hpp"
+#include "msp.hpp"
+#include "periodic_callback.hpp"
 
 namespace mspfci
 {
@@ -18,7 +18,7 @@ namespace mspfci
  */
 class Interface
 {
-public:
+ public:
   /**
    * @brief Constructor
    * @param port (const reference to std::string)
@@ -26,107 +26,31 @@ public:
    * @param ver (const reference to MSPVer)
    * @param level (const reference to LoggerLevel)
    */
-  Interface(const std::string& port, const uint32_t& baudrate = 115200, const MSPVer& ver = MSPVer::MSPv1,
+  Interface(const std::string& port,
+            const uint32_t& baudrate = 115200,
+            const MSPVer& ver = MSPVer::MSPv1,
             const LoggerLevel& level = LoggerLevel::FULL);
 
   /**
-   * @brief Getter. Get port of the serial connection
-   * @return port (const std::string)
+   * @brief Register a callback function into a periodic callback
+   * @tparam Message type
+   * @param freq is the frequency the periodic callback has to be ran at (rvalue reference)
+   * @param func callback function to be called when a message is received (rvalue reference)
    */
-  inline const std::string getPort() const
+  template <typename T>
+  inline void registerCallback(float&& freq, std::function<void(const Msg&)>&& callback)
   {
-    return serial_->getPort();
+    pcs_.emplace_back(logger_, msp_, std::move(freq), std::move(callback), std::make_unique<T>());
   }
 
-  /**
-   * @brief Getter. Get baudrate of the serial connection
-   * @return baudrate (uint32_t)
-   */
-  inline uint32_t getBaudrate() const
-  {
-    return serial_->getBaudrate();
-  }
+  /// Shared pointer to Logger
+  std::shared_ptr<Logger> logger_ = nullptr;
 
-  /**
-   * @brief Getter. Get the MSP version in use
-   * @return msp version (const MSPVer)
-   */
-  inline const MSPVer& getMspVersion() const
-  {
-    return msp_version_;
-  }
+  /// Shared pointer to MSP
+  std::shared_ptr<MSP> msp_ = nullptr;
 
-  /**
-   * @brief Setter. Set the MSP version
-   * @param ver (const reference to MSPVer) msp version
-   */
-  inline void setMspVersion(const MSPVer& ver)
-  {
-    std::stringstream ss;
-    ss << "Interface::setMspVersion: Setting version to MSPv" << ver;
-    logger_->info(ss.str());
-    msp_version_ = (ver == MSPVer::MSPv1) ? MSPVer::MSPv1 : MSPVer::MSPv2;
-    max_payload_bytes_ = (ver == MSPVer::MSPv1) ? 255 : 65535;
-  }
-
-  /**
-   * @brief Send data through serial connection
-   * @param code (const reference to MSPCode)
-   * @param data (const reference to Bytes)
-   * @return True if send has succeeded, False otherwise (bool)
-   */
-  [[nodiscard]] bool send(const MSPCode& code, const Bytes& data);
-
-  /**
-   * @brief Receive data through serial connection
-   * @param data (reference to Bytes)
-   * @return True if receive has succeeded, False otherwise (bool)
-   */
-  [[nodiscard]] bool receive(Bytes& data);
-
-private:
-  /**
-   * @brief Pack data to be sent according to the version
-   * @param code (const reference to MSPCode)
-   * @param data (const reference to Bytes)
-   * @return packed data (const Bytes)
-   */
-  const Bytes pack(const MSPCode& code, const Bytes& data);
-
-  /**
-   * @brief Unpack received bytes, and check crc
-   * @param read_buffer (reference to Bytes) packed data
-   * @param data (reference to Bytes)
-   * @return True if unpack succeeded, Flase otherwise (bool)
-   */
-  [[nodiscard]] bool unpack(Bytes& read_buffer, Bytes& data);
-
-  /**
-   * @brief Compute crc according to the version
-   * @param code (const reference to MSPCode)
-   * @param data (const reference to byte_vector)
-   * @return crc (uint8_t)
-   */
-  uint8_t crc(const MSPCode& code, const Bytes& data);
-
-  /**
-   * @brief Check crc according to the version
-   * @param code (const reference to MSPCode)
-   * @param data (const reference to byte_vector)
-   * @param version (const reference to int) version of msg received
-   * @return True if check succeeded, false otherwise (bool)
-   */
-  [[nodiscard]] bool checkCrc(const MSPCode& code, const Bytes& data, const MSPVer& version);
-
-  /// The serial interface
-  std::unique_ptr<serial::Serial> serial_;
-
-  /// MSP varsion and maximum payload size
-  MSPVer msp_version_;
-  size_t max_payload_bytes_;
-
-  /// Logger
-  std::shared_ptr<Logger> logger_;
+  /// Vector of Periodic Callbacks
+  std::vector<PeriodicCallback<std::function<void(const Msg&)>>> pcs_;
 };
 }  // namespace mspfci
 
