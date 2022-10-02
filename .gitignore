@@ -48,3 +48,9 @@ build/*
 *.exe
 *.out
 *.app
+
+# Format
+.clang-format
+
+# Todo
+TODO
