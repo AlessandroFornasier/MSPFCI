@@ -5,15 +5,18 @@
 #include <memory>
 #include <mutex>
 
+#include "defs.hpp"
+#include "utils.hpp"
+
 namespace mspfci
 {
 enum LoggerLevel
 {
-  INACTIVE,
+  FULL,
   INFO,
   WARN,
   ERR,
-  FULL
+  INACTIVE,
 };
 
 class Logger
@@ -26,61 +29,83 @@ class Logger
 
   /**
    * @brief Getter. Get the MSP version in use
+   *
    * @return msp version (const reference to MSPVer)
    */
-  inline const LoggerLevel& getlevel() const { return level_; }
+  const LoggerLevel& getlevel() const { return level_; }
 
   /**
    * @brief Setter. Set the logger level version
+   *
    * @param level (const reference to LoggerLevel)
    */
-  inline void setLevel(const LoggerLevel& level) { level_ = level; }
+  void setLevel(const LoggerLevel& level) { level_ = level; }
 
   /**
    * @brief Format a info message and log it
-   * @param msg (std::string)
+   *
+   * @tparam T type of data to be logged
+   * @param m message to be logged
    */
-  inline void info(const std::string& msg)
-  {
-    if (level_ == LoggerLevel::INFO || level_ == LoggerLevel::FULL)
-    {
-      log("[INFO] " + msg + '.');
-    }
-  }
 
-  /**
-   * @brief Format a error message (red) and log it
-   * @param msg (std::string)
-   */
-  inline void err(const std::string& msg)
+  template <typename T>
+  inline void info(const T& m)
   {
-    if (level_ == LoggerLevel::ERR || level_ == LoggerLevel::FULL)
+    if (level_ == LoggerLevel::FULL || level_ == LoggerLevel::INFO)
     {
-      log("\033[31m[ERROR] " + msg + ".\033[0m");
+      ss_ << m;
+      log("[INFO] " + ss_.str() + '.');
     }
   }
 
   /**
    * @brief Format a warning message (yellow) and log it
-   * @param msg (std::string)
+   *
+   * @tparam T type of data to be logged
+   * @param m message to be logged
    */
-  inline void warn(const std::string& msg)
+  template <typename T>
+  inline void warn(const T& m)
   {
-    if (level_ == LoggerLevel::WARN || level_ == LoggerLevel::FULL)
+    if (level_ == LoggerLevel::FULL || level_ == LoggerLevel::INFO || level_ == LoggerLevel::WARN)
     {
-      log("\033[33m[WARNING] " + msg + ".\033[0m");
+      ss_ << m;
+      log("\033[33m[WARNING] " + ss_.str() + ".\033[0m");
+    }
+  }
+
+  /**
+   * @brief Format a error message (red) and log it
+   *
+   * @tparam T type of data to be logged
+   * @param m message to be logged
+   */
+  template <typename T>
+  inline void err(const T& m)
+  {
+    if (level_ == LoggerLevel::FULL || level_ == LoggerLevel::INFO || level_ == LoggerLevel::WARN ||
+        level_ == LoggerLevel::ERR)
+    {
+      ss_ << m;
+      log("\033[31m[ERROR] " + ss_.str() + ".\033[0m");
     }
   }
 
  private:
   /**
    * @brief Log a message if logger is active
+   *
    * @param msg (std::string)
    */
   inline void log(const std::string& msg)
   {
+    // Log msg
     std::scoped_lock lock(logger_mtx_);
     std::cout << msg << '\n' << std::endl;
+
+    // Clear stremstring
+    ss_.str(std::string());
+    ss_.clear();
   }
 
   /// Logger level
@@ -88,6 +113,9 @@ class Logger
 
   /// Logger mutex
   std::mutex logger_mtx_;
+
+  /// Logger stringstream
+  std::stringstream ss_;
 };
 }  // namespace mspfci
 
