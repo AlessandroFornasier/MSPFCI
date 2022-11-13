@@ -49,6 +49,7 @@ else()
         message(STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
     endif()
 endif ()
+message(STATUS "Building in: " ${CMAKE_BUILD_TYPE})
 
 # Include header files
 include_directories(
