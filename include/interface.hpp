@@ -10,6 +10,7 @@
 #include "logger.hpp"
 #include "msp.hpp"
 #include "periodic_callback.hpp"
+#include "utils.hpp"
 
 namespace mspfci
 {
@@ -43,14 +44,31 @@ class Interface
     pcs_.emplace_back(logger_, msp_, std::move(freq), std::move(callback), std::make_unique<T>());
   }
 
+  /**
+   * @brief Read message. Send request to the flight controller and wait for the response
+   *
+   * @param msg reference to Msg
+   * @return true if the message is read correctly, false otherwise
+   */
+  [[nodiscard]] bool read(Msg& msg);
+
   /// Shared pointer to Logger
   std::shared_ptr<Logger> logger_ = nullptr;
+
+ private:
+  /**
+   * @brief Request the aux map to the flight controller and register it
+   */
+  [[nodiscard]] bool registerAuxMap();
 
   /// Shared pointer to MSP
   std::shared_ptr<MSP> msp_ = nullptr;
 
   /// Vector of Periodic Callbacks
   std::vector<PeriodicCallback<std::function<void(const Msg&)>>> pcs_;
+
+  /// RX map
+  RXMap rx_map_;
 };
 }  // namespace mspfci
 

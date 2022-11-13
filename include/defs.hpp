@@ -28,6 +28,7 @@ enum class MSPVer : int
  */
 enum class MSPCode : uint16_t
 {
+  MSP_RX_MAP = 64,
   MSP_RAW_IMU = 102,
   MSP_ALTITUDE = 109,
 };

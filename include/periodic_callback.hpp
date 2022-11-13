@@ -33,7 +33,6 @@ class PeriodicCallback
       , fun_(std::forward<F>(fun))
       , msg_(std::move(msg))
   {
-    std::cout << "constructor" << std::endl;
     start();
   }
 
@@ -47,8 +46,6 @@ class PeriodicCallback
    */
   PeriodicCallback(PeriodicCallback&& other)
   {
-    std::cout << "move constructor" << std::endl;
-
     // Stop if active
     if (other.isActive())
     {
@@ -85,8 +82,6 @@ class PeriodicCallback
    */
   PeriodicCallback& operator=(PeriodicCallback&& other)
   {
-    std::cout << "move assignment" << std::endl;
-
     if (this != &other)
     {
       // Stop if active

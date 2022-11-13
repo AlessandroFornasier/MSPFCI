@@ -58,9 +58,7 @@ class MSP
    */
   inline void setMspVersion(const MSPVer& ver)
   {
-    std::stringstream ss;
-    ss << "MSP::setMspVersion: Setting version to MSPv" << ver;
-    logger_->info(ss.str());
+    logger_->info("MSP::setMspVersion: Setting version to MSPv" + enum_to_string(ver));
     msp_version_ = (ver == MSPVer::MSPv1) ? MSPVer::MSPv1 : MSPVer::MSPv2;
     max_payload_bytes_ = (ver == MSPVer::MSPv1) ? 255 : 65535;
   }
