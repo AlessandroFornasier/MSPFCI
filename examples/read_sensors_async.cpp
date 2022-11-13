@@ -14,8 +14,8 @@ int main(int, char**)
   mspfci::Interface inter(port, baudrate);
 
   // Register callbacks
-  inter.registerCallback<mspfci::Imu>(300.0, [](const mspfci::Msg& msg) { std::cout << msg << std::endl; });
-  inter.registerCallback<mspfci::Altitude>(100.0, [](const mspfci::Msg& msg) { std::cout << msg << std::endl; });
+  inter.registerCallback<mspfci::Imu>(350.0, [&inter](const mspfci::Msg& msg) { inter.logger_->info(msg); });
+  // inter.registerCallback<mspfci::Altitude>(100.0, [&inter](const mspfci::Msg& msg) { inter.logger_->info(msg); });
 
   while (true)
   {
