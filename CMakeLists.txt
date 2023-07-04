@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.13)
 
 project(
     MSPFCI
@@ -6,12 +6,6 @@ project(
     DESCRIPTION "MSPFCI: Multiwii Serial Protocol Flight Controller Interface. Interface Library for flight controllers based on the MultiWii Serial Protocol"
     LANGUAGES CXX
 )
-
-# Include libraries
-find_package(serial REQUIRED)
-
-# display message to user
-message(STATUS "SERIAL VERSION: " ${serial_VERSION})
 
 # Set compiler, try to compile with newer version of C++
 include(CheckCXXCompilerFlag)
@@ -30,12 +24,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "Set compiler ${CMAKE_CXX_COMPILER}.")
 
 # Optimization flags
-# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=thread")
-# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=address")
-# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=undefined")
-# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -Weffc++")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=thread -pthread")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=address -pthread")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -fsanitize=undefined -pthread")
+# set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Werror -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -Weffc++ -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra -Wuninitialized -Wmaybe-uninitialized -pedantic -fno-omit-frame-pointer -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pthread")
 
 # Define build type
 if (NOT CMAKE_BUILD_TYPE)
@@ -54,28 +48,26 @@ message(STATUS "Building in: " ${CMAKE_BUILD_TYPE})
 # Include header files
 include_directories(
     include
-    ${serial_INCLUDE_DIR}
-)
-
-# Set link libraries used by all binaries
-list(
-    APPEND thirdparty_libraries
-    ${serial_LIBRARIES}
 )
 
 # List library source files
 list(
   APPEND lib_sources
-  source/interface.cpp
-  source/msp.cpp
+  source/serial/serial.cc
+  source/serial/impl/unix.cc
+  source/serial/impl/list_ports/list_ports_linux.cc
+  source/mspfci/interface.cpp
+  source/mspfci/msp.cpp
 )
 
 ## Declare a C++ library
 add_library(mspfci SHARED ${lib_sources})
-target_link_libraries(mspfci ${thirdparty_libraries})
+target_link_libraries(mspfci)
 
 ## Declare a C++ executable
 add_executable(read_sensors examples/read_sensors.cpp)
-target_link_libraries(read_sensors ${thirdparty_libraries} mspfci)
+target_link_libraries(read_sensors mspfci)
 add_executable(read_sensors_async examples/read_sensors_async.cpp)
-target_link_libraries(read_sensors_async ${thirdparty_libraries} mspfci)
+target_link_libraries(read_sensors_async mspfci)
+add_executable(send_commands examples/send_commands.cpp)
+target_link_libraries(send_commands mspfci)

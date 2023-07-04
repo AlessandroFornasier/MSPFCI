@@ -1,4 +1,4 @@
-#include "msp.hpp"
+#include "mspfci/msp.hpp"
 
 namespace mspfci
 {
@@ -167,7 +167,7 @@ bool MSP::receive(Bytes& data)
 
 bool MSP::unpack(Bytes& read_buffer, Bytes& data)
 {
-  // Define accumulated size of read buffer and read one byte
+  // Wait until one byte is available and read it
   while (serial_->available() < 1)
   {
   }
@@ -191,7 +191,7 @@ bool MSP::unpack(Bytes& read_buffer, Bytes& data)
       return false;
     }
 
-    // Read three bytes
+    // Wait until three bytes are available and read them
     while (serial_->available() < 3)
     {
     }
@@ -218,7 +218,7 @@ bool MSP::unpack(Bytes& read_buffer, Bytes& data)
       return false;
     }
 
-    // Read six bytes
+    // Wait until six bytes are available and read them
     while (serial_->available() < 6)
     {
     }

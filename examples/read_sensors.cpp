@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iostream>
 
-#include "interface.hpp"
+#include "mspfci/interface.hpp"
 
 int main(int, char**)
 {

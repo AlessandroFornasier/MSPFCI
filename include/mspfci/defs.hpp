@@ -31,6 +31,9 @@ enum class MSPCode : uint16_t
   MSP_RX_MAP = 64,
   MSP_RAW_IMU = 102,
   MSP_ALTITUDE = 109,
+  MSP_RC = 105,
+  MSP_SET_RAW_RC = 200,
+
 };
 }  // namespace mspfci
 

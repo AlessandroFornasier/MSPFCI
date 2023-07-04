@@ -9,7 +9,7 @@
 #include <thread>
 
 #include "logger.hpp"
-#include "msp.hpp"
+#include "mspfci/msp.hpp"
 
 namespace mspfci
 {

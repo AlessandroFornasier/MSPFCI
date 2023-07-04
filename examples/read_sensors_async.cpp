@@ -2,8 +2,8 @@
 #include <chrono>
 #include <iostream>
 
-#include "interface.hpp"
-#include "periodic_callback.hpp"
+#include "mspfci/interface.hpp"
+#include "mspfci/periodic_callback.hpp"
 
 int main(int, char**)
 {
@@ -14,7 +14,7 @@ int main(int, char**)
   mspfci::Interface inter(port, baudrate);
 
   // Register callbacks
-  inter.registerCallback<mspfci::Imu>(350.0, [&inter](const mspfci::Msg& msg) { inter.logger_->info(msg); });
+  inter.registerCallback<mspfci::Imu>(200.0, [&inter](const mspfci::Msg& msg) { inter.logger_->info(msg); });
   // inter.registerCallback<mspfci::Altitude>(100.0, [&inter](const mspfci::Msg& msg) { inter.logger_->info(msg); });
 
   while (true)

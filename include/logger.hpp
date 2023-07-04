@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#include "defs.hpp"
+#include "mspfci/defs.hpp"
 #include "utils.hpp"
 
 namespace mspfci

@@ -8,16 +8,17 @@
 namespace mspfci
 {
 /**
- * @brief Function to decode a given data into an integeral type
+ * @brief Function to decode (Little Endian decoding) a given data into an integeral type
  *
  * @tparam T type of variable data has to be decoded in (integeral type)
- * @param data (const reference to Bytes)
- * @param x (reference to T (integral type))
+ * @param data data to be decoded (const reference to Bytes)
+ * @param x outcome of decoding (reference to T (integral type))
  * @param offset offset in bytes, starting index of data
  * @return True if decoding is succeeded, Flase otherwise
  */
 template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-[[nodiscard]] bool decode(const Bytes& data, T& x, size_t offset = 0) {
+[[nodiscard]] bool decode(const Bytes& data, T& x, size_t offset = 0)
+{
   // Check data contains enough bytes
   if ((data.size() - offset) < sizeof(x))
   {
@@ -37,18 +38,19 @@ template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
 }
 
 /**
- * @brief Function to decode a given data into an floating-point type
+ * @brief Function to decode (Little Endian decoding) a given data into an floating-point type
  *
  * @tparam integral_type type of binary data
  * @tparam T type of variable data has to be decoded in (floating-point type)
- * @param data (const reference to Bytes)
- * @param x (reference to T (floating-point type))
+ * @param data data to be decoded (const reference to Bytes)
+ * @param x outcome of decoding(reference to T (floating-point type))
  * @param offset offset in bytes, starting index of data
  * @param scale scale to be applied to decoded data
  * @return True if decoding is succeeded, Flase otherwise
  */
 template <typename integral_type, typename T, typename = std::enable_if_t<std::is_floating_point_v<T>, bool>>
-[[nodiscard]] bool decode(const Bytes& data, T& x, size_t offset = 0, float scale = 1.0) {
+[[nodiscard]] bool decode(const Bytes& data, T& x, size_t offset = 0, float scale = 1.0)
+{
   // Deinfe integral_type where data is decoded to
   integral_type tmp;
 
@@ -60,8 +62,49 @@ template <typename integral_type, typename T, typename = std::enable_if_t<std::i
 
   // Cast to floating-point type
   x = static_cast<T>(tmp) * scale;
+  // TODO: Double check reinterpret cast
 
   return true;
+}
+
+/**
+ * @brief Function to encode (Little Endian encoding) a given integer into Bytes
+ *
+ * @tparam T type of variable x that has to be encoded (integral type)
+ * @param x data to be encoded (const reference to T (integral type))
+ * @param data outcome of encoding (reference to Bytes)
+ * @return true if encoding was successful, false otherwise
+ */
+template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
+[[nodiscard]] bool encode(const T& x, Bytes& data)
+{
+  for (size_t i(0); i < sizeof(x); ++i)
+  {
+    data.emplace_back(x >> (8 * i) & 0xFF);
+  }
+  return true;
+}
+
+/**
+ * @brief Function to encode (Little Endian encoding) a given floating point into Bytes
+ *
+ * @tparam integral_type type of binary data
+ * @tparam T type of variable x that has to be encoded (integral type)
+ * @param x data to be encoded (const reference to T (integral type))
+ * @param data outcome of encoding (reference to Bytes)
+ * @return true if encoding was successful, false otherwise
+ */
+template <typename integral_type, typename T, typename = std::enable_if_t<std::is_floating_point_v<T>, bool>>
+[[nodiscard]] bool encode(const T& x, Bytes& data)
+{
+  if ((x - std::numeric_limits<integral_type>::max()) * (x - std::numeric_limits<integral_type>::min()) <= 0)
+  {
+    return encode(static_cast<integral_type>(x));
+  }
+  else
+  {
+    return false;
+  }
 }
 
 /**
@@ -138,7 +181,6 @@ std::string enum_to_string(const T& e)
 {
   return std::to_string(static_cast<typename std::underlying_type<T>::type>(e));
 }
-
 }  // namespace mspfci
 
 #endif  // UTILS_H

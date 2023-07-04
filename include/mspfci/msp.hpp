@@ -2,14 +2,15 @@
 #define MSP_H
 
 #include <serial/serial.h>
+
 #include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
 
-#include "defs.hpp"
 #include "logger.hpp"
-#include "msgs.hpp"
+#include "mspfci/defs.hpp"
+#include "mspfci/msgs.hpp"
 #include "utils.hpp"
 
 namespace mspfci
